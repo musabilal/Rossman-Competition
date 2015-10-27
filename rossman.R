@@ -58,14 +58,12 @@ train<-merge(train,sales_diff_count)
 train$avg_diff_prob<-train$total_count_diff/train$total_count
 train<-train[,-c(20,21,22)] #Remove the temporary variables created
 train<-train[,-c(3)] #Remove Sales_diff_mean
-
 #Applying this new attribute to the test set
 avg_diff_prob<-summarize(group_by(train,Store,DayOfWeek),max(avg_diff_prob))
 test<-merge(test,avg_diff_prob)
 names(test)[18]<-c("avg_diff_prob")
 
 #Using Store,DayOfWeek,StoreType and checking Customers against it
-
 #On train
 mean_customers<-summarize(group_by(train,Store,DayOfWeek,StoreType,SchoolHoliday),mean(Customers))
 names(mean_customers)<-c("Store","DayOfWeek","StoreType","SchoolHoliday","feature_2")
@@ -73,7 +71,12 @@ train<-merge(train,mean_customers)
 train$Customer_difference<-abs(train$Customers-train$feature_2)/train$Customers
 train<-train[,-which(names(train) %in% c("feature_2"))]
 train$Customer_difference[is.infinite(train$Customer_difference)]<-0
-
+train<-train[,-which(names(train) %in% c("total_count_diff"))]
 #On test
 mean_customers_test<-train[,which(names(train) %in% c("Store","DayOfWeek","StoreType","SchoolHoliday","Customer_difference"))]
-test<-merge(test,mean_customers)
+test<-merge(test,mean_customers_test)
+
+#Taking Log of Competition Distance
+train$CompetitionDistance<-log(train$CompetitionDistance)
+test$CompetitionDistance<-log(test$CompetitionDistance)
+View(train)
